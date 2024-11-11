@@ -6,10 +6,9 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @SpringBootApplication
 @EnableFeignClients
-public class MsRegistrosApplication {
-
+public class TarearOpenFeignApplication {
 	public static void main(String[] args) {
-		SpringApplication.run(MsRegistrosApplication.class, args);
+		SpringApplication.run(TarearOpenFeignApplication.class, args);
 	}
 
 }

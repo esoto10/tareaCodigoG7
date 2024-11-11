@@ -6,10 +6,10 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @SpringBootApplication
 @EnableFeignClients
-public class MsRegistrosApplication {
+public class TareaRetrofitApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(MsRegistrosApplication.class, args);
+		SpringApplication.run(TareaRetrofitApplication.class, args);
 	}
 
 }

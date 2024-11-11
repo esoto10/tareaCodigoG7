@@ -21,7 +21,6 @@ public class PersonaNaturalController {
         PersonaNaturalEntity pn= personaNaturalService.guardarPersonaNatural(dni);
         return new ResponseEntity<>(pn, HttpStatus.CREATED);
 
-
     }
 
     @GetMapping

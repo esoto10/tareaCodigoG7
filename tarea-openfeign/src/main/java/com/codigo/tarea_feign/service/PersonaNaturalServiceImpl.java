@@ -4,11 +4,13 @@ import com.codigo.tarea_feign.aggregates.constantes.Constants;
 import com.codigo.tarea_feign.aggregates.response.ResponseReniec;
 import com.codigo.tarea_feign.client.ClientReniec;
 import com.codigo.tarea_feign.entity.PersonaNaturalEntity;
+import com.codigo.tarea_feign.redis.RedisService;
 import com.codigo.tarea_feign.repository.PersonaNaturalRepository;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -18,6 +20,8 @@ import java.util.Objects;
 public class PersonaNaturalServiceImpl implements PersonaNaturalService{
     @Autowired
     private PersonaNaturalRepository personaNaturalRepository;
+    @Autowired
+    private RedisService redisService;
 
     @Autowired
     private  ClientReniec clientReniec;

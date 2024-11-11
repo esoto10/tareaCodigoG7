@@ -1,10 +1,14 @@
 package com.codigo.tarea_feign.service;
 
+import com.codigo.tarea_feign.aggregates.constantes.Constants;
 import com.codigo.tarea_feign.aggregates.response.ResponseSunat;
 import com.codigo.tarea_feign.client.ClientSunat;
 import com.codigo.tarea_feign.entity.EmpresaEntity;
 import com.codigo.tarea_feign.entity.PersonaNaturalEntity;
+import com.codigo.tarea_feign.exception.EmpresasException;
+import com.codigo.tarea_feign.redis.RedisService;
 import com.codigo.tarea_feign.repository.EmpresaRepository;
+import com.codigo.tarea_feign.util.Util;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -18,6 +22,9 @@ public class EmpresaServiceImpl  implements  EmpresaService{
 
     @Autowired
     private EmpresaRepository empresaRepository;
+
+    @Autowired
+    private RedisService redisService;
 
     @Autowired
     private ClientSunat clientSunat;
@@ -76,5 +83,28 @@ public class EmpresaServiceImpl  implements  EmpresaService{
     @Override
     public List<EmpresaEntity> obtenerTodosLasEmpresas() {
         return  empresaRepository.findAll();
+    }
+
+
+    @Override
+    public ResponseSunat getInfoSunat(String ruc) {
+        ResponseSunat datosSunat= new ResponseSunat();
+        //busca ruc en redis
+        String redisonfo=redisService.getInRedis(ruc);
+        if(Objects.nonNull(redisonfo)){
+            return datosSunat= Util.convertirdesdString(redisonfo,ResponseSunat.class);
+        }else{
+            // se ejecuta el  metodo externo
+            String tokenOK="Bearer "+token;
+            datosSunat= clientSunat.getEmpresaRUC(ruc,tokenOK);
+            if(Objects.nonNull(datosSunat)){
+                //insertar objeto en redis
+                String dataforRedis=Util.convertirasString(datosSunat);
+                redisService.saveInRedis(Constants.REDIS_KEY_API_RENIEC+ruc,dataforRedis,5);
+                return datosSunat;
+            }else{
+                throw new EmpresasException("empresa no existe en sunat");
+            }
+        }
     }
 }

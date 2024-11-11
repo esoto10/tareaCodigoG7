@@ -1,8 +1,10 @@
 package com.codigo.tarea_feign.controller;
 
 
+import com.codigo.tarea_feign.aggregates.response.ResponseSunat;
 import com.codigo.tarea_feign.entity.EmpresaEntity;
 import com.codigo.tarea_feign.entity.PersonaNaturalEntity;
+import com.codigo.tarea_feign.exception.EmpresasException;
 import com.codigo.tarea_feign.service.EmpresaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -30,6 +32,11 @@ public class EmpresaController {
         return ResponseEntity.ok(lista);
     }
 
+    @GetMapping("/sunat/{ruc}")
+    public ResponseEntity<ResponseSunat> buscarXruc(@PathVariable String ruc) throws EmpresasException {
+        ResponseSunat empresa= empresaService.getInfoSunat(ruc);
+        return new ResponseEntity<>(empresa,HttpStatus.OK);
+    }
 
 
 }
