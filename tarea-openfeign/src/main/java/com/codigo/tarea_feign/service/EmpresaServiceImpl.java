@@ -100,7 +100,7 @@ public class EmpresaServiceImpl  implements  EmpresaService{
             if(Objects.nonNull(datosSunat)){
                 //insertar objeto en redis
                 String dataforRedis=Util.convertirasString(datosSunat);
-                redisService.saveInRedis(Constants.REDIS_KEY_API_RENIEC+ruc,dataforRedis,5);
+                redisService.saveInRedis(Constants.REDIS_KEY_API_SUNAT+ruc,dataforRedis,5);
                 return datosSunat;
             }else{
                 throw new EmpresasException("empresa no existe en sunat");
