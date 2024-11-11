@@ -4,12 +4,10 @@ import com.codigo.tarea_feign.aggregates.constantes.Constants;
 import com.codigo.tarea_feign.aggregates.response.ResponseSunat;
 import com.codigo.tarea_feign.client.ClientSunat;
 import com.codigo.tarea_feign.entity.EmpresaEntity;
-import com.codigo.tarea_feign.entity.PersonaNaturalEntity;
 import com.codigo.tarea_feign.exception.EmpresasException;
 import com.codigo.tarea_feign.redis.RedisService;
 import com.codigo.tarea_feign.repository.EmpresaRepository;
 import com.codigo.tarea_feign.util.Util;
-import io.netty.util.Constant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -96,7 +94,7 @@ public class EmpresaServiceImpl  implements  EmpresaService{
         //https://api.apis.net.pe/v2/sunat/ruc/full?numero=20604863342
         //Genero mi CLient RestTemplate y Ejecuto
         ResponseEntity<ResponseSunat> executeRestTemplate = restTemplate.exchange(
-                Constants.BASE_URL_SUNAT+"full?numero"+ruc, //URL A LA CUAL VAS A EJECUTAR
+                Constants.BASE_URL_SUNAT+"full?numero="+ruc, //URL A LA CUAL VAS A EJECUTAR
                 HttpMethod.GET, //TIPO DE SOLICITUD AL QUE PERTENCE LA URL
                 new HttpEntity<>(createHeaders()), //CABECERAS || HEADERS
                 ResponseSunat.class // RESPONSE A CASTEAR
@@ -105,7 +103,7 @@ public class EmpresaServiceImpl  implements  EmpresaService{
         if(executeRestTemplate.getStatusCode().equals(HttpStatus.OK)){
             return executeRestTemplate.getBody();
         }else {
-            return null;
+            throw new EmpresasException("empresa no existe en sunat");
         }
     }
     @Override
@@ -127,7 +125,7 @@ public class EmpresaServiceImpl  implements  EmpresaService{
             if(Objects.nonNull(datosSunat)){
                 //insertar objeto en redis
                 String dataforRedis=Util.convertirasString(datosSunat);
-                redisService.saveInRedis(Constants.REDIS_KEY_API_RENIEC +ruc,dataforRedis,5);
+                redisService.saveInRedis(Constants.REDIS_KEY_API_SUNAT +ruc,dataforRedis,5);
                 return datosSunat;
             }else{
                 throw new EmpresasException("empresa no existe en sunat");
