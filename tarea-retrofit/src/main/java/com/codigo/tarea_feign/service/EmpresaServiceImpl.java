@@ -1,14 +1,23 @@
 package com.codigo.tarea_feign.service;
 
+import com.codigo.tarea_feign.aggregates.constantes.Constants;
 import com.codigo.tarea_feign.aggregates.response.ResponseSunat;
 import com.codigo.tarea_feign.client.ClientSunat;
 import com.codigo.tarea_feign.entity.EmpresaEntity;
 import com.codigo.tarea_feign.entity.PersonaNaturalEntity;
+import com.codigo.tarea_feign.exception.EmpresasException;
+import com.codigo.tarea_feign.redis.RedisService;
 import com.codigo.tarea_feign.repository.EmpresaRepository;
+import com.codigo.tarea_feign.retrofit.ClientSunatService;
+import com.codigo.tarea_feign.retrofit.ClientSunatServiceImpl;
+import com.codigo.tarea_feign.util.Util;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import retrofit2.Call;
+import retrofit2.Response;
 
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Objects;
@@ -24,6 +33,13 @@ public class EmpresaServiceImpl  implements  EmpresaService{
 
     @Value("${token.api}")
     private  String token;
+
+    @Autowired
+    private RedisService redisService;
+
+    private ClientSunatService clienteretrofit= ClientSunatServiceImpl.
+            getRetrofit().create(ClientSunatService.class);
+
 
     @Override
     public EmpresaEntity guardarEmpresa(String ruc) {
@@ -76,5 +92,43 @@ public class EmpresaServiceImpl  implements  EmpresaService{
     @Override
     public List<EmpresaEntity> obtenerTodosLasEmpresas() {
         return  empresaRepository.findAll();
+    }
+
+    @Override
+    public ResponseSunat getInfoSunat(String ruc) throws IOException {
+        ResponseSunat datosSunat= new ResponseSunat();
+        //busca ruc en redis
+        String redisonfo=redisService.getInRedis(ruc);
+        if(Objects.nonNull(redisonfo)){
+            return datosSunat= Util.convertirdesdString(redisonfo,ResponseSunat.class);
+        }else{
+            // se ejecuta el  metodo externo
+            // datosSunat= clientSunat.getEmpresaRUC(ruc);
+            datosSunat=executeRestemplate(ruc);
+            if(Objects.nonNull(datosSunat)){
+                //insertar objeto en redis
+                String dataforRedis=Util.convertirasString(datosSunat);
+                redisService.saveInRedis(Constants.REDIS_KEY_API_SUNAT +ruc,dataforRedis,5);
+                return datosSunat;
+            }else{
+                throw new EmpresasException("empresa no existe en sunat");
+            }
+        }
+    }
+
+    private Call<ResponseSunat> prepareSunatretrofit(String ruc){
+        String tokenOK="Bearer "+token;
+        return clienteretrofit.getInfoSunat(token,ruc);
+    }
+
+
+    private ResponseSunat executeRestemplate(String ruc) throws IOException {
+        Call<ResponseSunat> clinteretrofit=prepareSunatretrofit(ruc);
+        Response<ResponseSunat> respuesta=clinteretrofit.execute();
+        ResponseSunat responseSunat= new ResponseSunat();
+        if(respuesta.isSuccessful() && Objects.nonNull(respuesta.body())){
+            responseSunat=respuesta.body();
+        }
+        return responseSunat;
     }
 }
